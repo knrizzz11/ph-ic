@@ -85,6 +85,13 @@ main{position:relative;z-index:1}.slide{min-height:100svh;padding:110px clamp(22
 .advanced{border:1px solid #ffd16655;background:linear-gradient(140deg,#182b49,#111b35)}
 .advanced .number{color:var(--gold)}
 @media(max-width:760px){.fall-stage{height:290px}.fall-object.dropping{animation-duration:1.4s}@keyframes dropMotion{0%{top:18px}88%{top:215px}100%{top:215px;transform:scaleY(.72) scaleX(1.2)}}}
+
+/* Smooth cinematic slide transition */
+.slide .wrap{will-change:transform,opacity,filter}
+.slide.transitioning .wrap{animation:slideCinematic .72s cubic-bezier(.2,.8,.2,1) both}
+@keyframes slideCinematic{0%{opacity:0;transform:translateY(34px) scale(.985);filter:blur(8px)}55%{opacity:1;filter:blur(0)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.menu-panel{transition:opacity .25s,transform .25s}
+@media(prefers-reduced-motion:reduce){.slide.transitioning .wrap{animation:none!important}}
 </style>
 </head>
 <body>
@@ -160,7 +167,7 @@ function toggleMenu(){const p=document.getElementById("menuPanel"),b=document.ge
 function playFall(){const o=document.getElementById("fallObject");o.classList.remove("dropping");void o.offsetWidth;o.classList.add("dropping")}
 function resetFall(){const o=document.getElementById("fallObject");o.classList.remove("dropping");o.style.top="18px"}
 function toggleSolution(btn){const card=btn.closest(".exercise");card.classList.toggle("open");btn.textContent=card.classList.contains("open")?"Ẩn lời giải":"Xem lời giải"}
-function go(n){current=Math.max(0,Math.min(slides.length-1,n));slides[current].scrollIntoView({behavior:"smooth"});updateNav();document.getElementById("menuPanel").classList.remove("show") }
+function go(n){current=Math.max(0,Math.min(slides.length-1,n));slides[current].classList.remove("transitioning");void slides[current].offsetWidth;slides[current].classList.add("transitioning");slides[current].scrollIntoView({behavior:"smooth"});updateNav();document.getElementById("menuPanel").classList.remove("show") }
 function updateNav(){document.getElementById('slideCount').textContent=String(current+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');document.getElementById('progressBar').style.width=((current+1)/slides.length*100)+'%';[...dots.children].forEach((b,i)=>b.classList.toggle('active',i===current))}
 const menuItems=document.getElementById("menuItems");slides.forEach((s,i)=>{const b=document.createElement("button");b.className="menu-item";b.innerHTML="<span>"+String(i+1).padStart(2,"0")+"</span><span>"+(s.querySelector("h1,h2")?.textContent.trim().replace(/\s+/g," ").slice(0,42)||"Nội dung")+"</span>";b.onclick=()=>go(i);menuItems.appendChild(b)});
 const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){current=slides.indexOf(e.target);updateNav();[...menuItems.children].forEach((b,i)=>b.classList.toggle("current",i===current))}}),{threshold:.4});slides.forEach(s=>observer.observe(s));const revealObserver=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');revealObserver.unobserve(e.target)}}),{threshold:.12});document.querySelectorAll('.mini,.glass,.photo-card,.info-row').forEach(el=>{el.classList.add('reveal');revealObserver.observe(el)});
